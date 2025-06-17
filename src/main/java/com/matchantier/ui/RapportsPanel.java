@@ -10,29 +10,29 @@ import com.matchantier.model.Mouvement;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class RapportsPanel extends JPanel {
-    private ArticleDAO articleDAO;
-    private MouvementDAO mouvementDAO;
-    private InventaireDAO inventaireDAO;
-    private com.toedter.calendar.JDateChooser dateDebut;
-    private com.toedter.calendar.JDateChooser dateFin;
-    private JComboBox<String> rapportType;
+    private final ArticleDAO articleDAO;
+    private final MouvementDAO mouvementDAO;
+    private final InventaireDAO inventaireDAO;
+    private final com.toedter.calendar.JDateChooser dateDebut;
+    private final com.toedter.calendar.JDateChooser dateFin;
+    private final JComboBox<String> rapportType;
+    private final JTextArea rapportArea;
+    private String rapportActuel;
 
     public RapportsPanel() {
         articleDAO = new ArticleDAO();
         mouvementDAO = new MouvementDAO();
         inventaireDAO = new InventaireDAO();
-        initializeComponents();
-        setupLayout();
-    }
-
-    private void initializeComponents() {
-        // Sélection du type de rapport
+        
+        // Initialisation des composants
         String[] types = {
             "Rapport de Stock Actuel",
             "Rapport d'Historique des Mouvements",
@@ -40,18 +40,12 @@ public class RapportsPanel extends JPanel {
             "Rapport d'Inventaire"
         };
         rapportType = new JComboBox<>(types);
-
-        // Sélection des dates
         dateDebut = new com.toedter.calendar.JDateChooser();
         dateFin = new com.toedter.calendar.JDateChooser();
-
-        // Boutons d'action
-        JButton genererButton = new JButton("Générer Rapport");
-        JButton exporterButton = new JButton("Exporter");
-
-        // Ajout des écouteurs d'événements
-        genererButton.addActionListener(e -> genererRapport());
-        exporterButton.addActionListener(e -> exporterRapport());
+        rapportArea = new JTextArea();
+        rapportArea.setEditable(false);
+        
+        setupLayout();
     }
 
     private void setupLayout() {
@@ -85,16 +79,46 @@ public class RapportsPanel extends JPanel {
 
         // Boutons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        buttonPanel.add(new JButton("Générer Rapport"));
-        buttonPanel.add(new JButton("Exporter"));
+        JButton genererButton = new JButton("Générer Rapport");
+        JButton exporterButton = new JButton("Exporter");
+        
+        genererButton.addActionListener(e -> genererRapport());
+        exporterButton.addActionListener(e -> exporterRapport());
+        
+        buttonPanel.add(genererButton);
+        buttonPanel.add(exporterButton);
+
+        // Zone d'affichage du rapport
+        JScrollPane scrollPane = new JScrollPane(rapportArea);
+        scrollPane.setPreferredSize(new Dimension(800, 400));
 
         // Ajout des composants
         add(configPanel, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
     private void genererRapport() {
         String type = (String) rapportType.getSelectedItem();
+        
+        // Vérification des dates pour les rapports qui en ont besoin
+        if (type.equals("Rapport d'Historique des Mouvements")) {
+            if (dateDebut.getDate() == null || dateFin.getDate() == null) {
+                JOptionPane.showMessageDialog(this,
+                        "Veuillez sélectionner les dates de début et de fin",
+                        "Dates manquantes",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (dateDebut.getDate().after(dateFin.getDate())) {
+                JOptionPane.showMessageDialog(this,
+                        "La date de début doit être antérieure à la date de fin",
+                        "Dates invalides",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
         try {
             switch (type) {
                 case "Rapport de Stock Actuel":
@@ -134,7 +158,8 @@ public class RapportsPanel extends JPanel {
                     article.getQuantiteMinimale()));
         }
 
-        afficherRapport(rapport.toString());
+        rapportActuel = rapport.toString();
+        rapportArea.setText(rapportActuel);
     }
 
     private void genererRapportMouvements() throws SQLException {
@@ -142,13 +167,16 @@ public class RapportsPanel extends JPanel {
         LocalDateTime fin = dateFin.getDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
         List<Mouvement> mouvements = mouvementDAO.findByDateRange(debut, fin);
 
-        String rapport = generateMouvementsReport(mouvements);
-        afficherRapport(rapport);
+        rapportActuel = generateMouvementsReport(mouvements);
+        rapportArea.setText(rapportActuel);
     }
 
     private String generateMouvementsReport(List<Mouvement> mouvements) {
         StringBuilder report = new StringBuilder();
         report.append("RAPPORT DES MOUVEMENTS DE STOCK\n");
+        report.append("Période: ").append(dateDebut.getDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE))
+              .append(" au ").append(dateFin.getDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE))
+              .append("\n");
         report.append("==============================\n\n");
 
         for (Mouvement m : mouvements) {
@@ -188,7 +216,8 @@ public class RapportsPanel extends JPanel {
                     article.getQuantiteMinimale()));
         }
 
-        afficherRapport(rapport.toString());
+        rapportActuel = rapport.toString();
+        rapportArea.setText(rapportActuel);
     }
 
     private void genererRapportInventaire() throws SQLException {
@@ -215,22 +244,19 @@ public class RapportsPanel extends JPanel {
             rapport.append("\n");
         }
 
-        afficherRapport(rapport.toString());
-    }
-
-    private void afficherRapport(String rapport) {
-        JTextArea textArea = new JTextArea(rapport);
-        textArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(600, 400));
-
-        JOptionPane.showMessageDialog(this,
-                scrollPane,
-                "Rapport",
-                JOptionPane.INFORMATION_MESSAGE);
+        rapportActuel = rapport.toString();
+        rapportArea.setText(rapportActuel);
     }
 
     private void exporterRapport() {
+        if (rapportActuel == null || rapportActuel.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Aucun rapport à exporter. Veuillez d'abord générer un rapport.",
+                    "Aucun rapport",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Enregistrer le rapport");
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -240,7 +266,26 @@ public class RapportsPanel extends JPanel {
 
         if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
-            // TODO: Implémenter l'exportation du rapport dans le fichier sélectionné
+            String extension = "";
+            if (fileChooser.getFileFilter() instanceof javax.swing.filechooser.FileNameExtensionFilter) {
+                extension = "." + ((javax.swing.filechooser.FileNameExtensionFilter) fileChooser.getFileFilter()).getExtensions()[0];
+            }
+            if (!file.getName().toLowerCase().endsWith(extension)) {
+                file = new File(file.getAbsolutePath() + extension);
+            }
+
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write(rapportActuel);
+                JOptionPane.showMessageDialog(this,
+                        "Le rapport a été exporté avec succès.",
+                        "Exportation réussie",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Erreur lors de l'exportation du rapport: " + e.getMessage(),
+                        "Erreur d'exportation",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 } 
