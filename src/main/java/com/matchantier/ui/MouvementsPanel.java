@@ -4,6 +4,7 @@ import com.matchantier.dao.ArticleDAO;
 import com.matchantier.dao.MouvementDAO;
 import com.matchantier.model.Article;
 import com.matchantier.model.Mouvement;
+import com.matchantier.util.StockCalculator;
 import com.matchantier.ui.dialog.MouvementDialog;
 import com.toedter.calendar.JDateChooser;
 
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 public class MouvementsPanel extends JPanel {
     private final MouvementDAO mouvementDAO;
     private final ArticleDAO articleDAO;
+    private final StockCalculator stockCalculator;
     private JTable mouvementsTable;
     private DefaultTableModel tableModel;
     private JComboBox<Article> articleFilter;
@@ -32,9 +34,10 @@ public class MouvementsPanel extends JPanel {
     private final List<StockChangeListener> stockChangeListeners;
 
     public MouvementsPanel() {
-        mouvementDAO = new MouvementDAO();
-        articleDAO = new ArticleDAO();
-        stockChangeListeners = new ArrayList<>();
+        this.mouvementDAO = new MouvementDAO();
+        this.articleDAO = new ArticleDAO();
+        this.stockCalculator = new StockCalculator();
+        this.stockChangeListeners = new ArrayList<>();
         initializeComponents();
         setupLayout();
         loadMouvements();

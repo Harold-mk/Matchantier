@@ -5,6 +5,7 @@ import com.matchantier.dao.MouvementDAO;
 import com.matchantier.model.Article;
 import com.matchantier.model.Mouvement;
 import com.matchantier.util.StockAlertManager;
+import com.matchantier.util.StockCalculator;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class StocksPanel extends JPanel implements MouvementsPanel.StockChangeListener {
     private final ArticleDAO articleDAO;
     private final MouvementDAO mouvementDAO;
+    private final StockCalculator stockCalculator;
     private final JTable stocksTable;
     private final DefaultTableModel tableModel;
     private final JComboBox<String> categoryFilter;
@@ -33,6 +35,7 @@ public class StocksPanel extends JPanel implements MouvementsPanel.StockChangeLi
     public StocksPanel() {
         this.articleDAO = new ArticleDAO();
         this.mouvementDAO = new MouvementDAO();
+        this.stockCalculator = new StockCalculator();
         this.alertManager = StockAlertManager.getInstance();
         
         setLayout(new BorderLayout());
@@ -136,12 +139,7 @@ public class StocksPanel extends JPanel implements MouvementsPanel.StockChangeLi
     
     private Map<Long, Integer> calculateStockQuantities() {
         try {
-            List<Mouvement> mouvements = mouvementDAO.findAll();
-            return mouvements.stream()
-                .collect(Collectors.groupingBy(
-                    Mouvement::getArticleId,
-                    Collectors.summingInt(m -> m.getType().equals("ENTREE") ? m.getQuantite() : -m.getQuantite())
-                ));
+            return stockCalculator.calculateAllStocks();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this,
                 "Erreur lors du calcul des quantités : " + e.getMessage(),

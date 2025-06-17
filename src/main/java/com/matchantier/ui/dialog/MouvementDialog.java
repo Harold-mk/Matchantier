@@ -3,6 +3,7 @@ package com.matchantier.ui.dialog;
 import com.matchantier.dao.ArticleDAO;
 import com.matchantier.model.Article;
 import com.matchantier.model.Mouvement;
+import com.matchantier.util.StockCalculator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,6 +12,7 @@ import java.util.List;
 
 public class MouvementDialog extends JDialog {
     private final ArticleDAO articleDAO;
+    private final StockCalculator stockCalculator;
     private JComboBox<Article> articleCombo;
     private JComboBox<Mouvement.Type> typeCombo;
     private JSpinner quantiteSpinner;
@@ -23,6 +25,7 @@ public class MouvementDialog extends JDialog {
         super(parent, "Mouvement", true);
         this.mouvement = mouvement;
         this.articleDAO = new ArticleDAO();
+        this.stockCalculator = new StockCalculator();
         initializeComponents();
         setupLayout();
         if (mouvement != null) {
@@ -156,14 +159,37 @@ public class MouvementDialog extends JDialog {
             return;
         }
 
+        Article selectedArticle = (Article) articleCombo.getSelectedItem();
+        Mouvement.Type selectedType = (Mouvement.Type) typeCombo.getSelectedItem();
+        int quantite = (Integer) quantiteSpinner.getValue();
+
+        // Vérification du stock pour les mouvements de sortie
+        if (selectedType == Mouvement.Type.SORTIE) {
+            try {
+                String messageErreur = stockCalculator.verifierMouvementSortieAvecMessage(selectedArticle.getId(), quantite);
+                if (messageErreur != null) {
+                    JOptionPane.showMessageDialog(this,
+                            messageErreur,
+                            "Stock insuffisant",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Erreur lors de la vérification du stock : " + e.getMessage(),
+                        "Erreur",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
         if (mouvement == null) {
             mouvement = new Mouvement();
         }
 
-        Article selectedArticle = (Article) articleCombo.getSelectedItem();
         mouvement.setArticleId(selectedArticle.getId());
-        mouvement.setType((Mouvement.Type) typeCombo.getSelectedItem());
-        mouvement.setQuantite((Integer) quantiteSpinner.getValue());
+        mouvement.setType(selectedType);
+        mouvement.setQuantite(quantite);
         mouvement.setReference(referenceField.getText().trim());
         mouvement.setCommentaire(commentaireArea.getText().trim());
 
