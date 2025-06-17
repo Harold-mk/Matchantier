@@ -96,8 +96,6 @@ matchantier/
 ### Ce qu'il vous faut
 - Un ordinateur qui marche (Windows, Mac ou Linux)
 - Java 17 ou plus récent
-- 2 Go de mémoire
-- 500 Mo d'espace disque
 
 ### C'est parti !
 
