@@ -44,6 +44,7 @@ public class InventaireDialog extends JDialog {
 
         // Statut
         statutCombo = new JComboBox<>(Inventaire.StatutInventaire.values());
+        statutCombo.setSelectedItem(Inventaire.StatutInventaire.EN_COURS);
 
         // Raison d'ajustement
         raisonAjustementArea = new JTextArea(3, 20);
@@ -59,19 +60,6 @@ public class InventaireDialog extends JDialog {
             }
         };
         detailsTable = new JTable(tableModel);
-
-        // Boutons
-        JButton okButton = new JButton("OK");
-        JButton cancelButton = new JButton("Annuler");
-
-        okButton.addActionListener(e -> {
-            if (validateFields()) {
-                confirmed = true;
-                dispose();
-            }
-        });
-
-        cancelButton.addActionListener(e -> dispose());
     }
 
     private void setupLayout() {
@@ -115,8 +103,20 @@ public class InventaireDialog extends JDialog {
 
         // Panel des boutons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        buttonPanel.add(new JButton("OK"));
-        buttonPanel.add(new JButton("Annuler"));
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Annuler");
+
+        okButton.addActionListener(e -> {
+            if (validateFields()) {
+                confirmed = true;
+                dispose();
+            }
+        });
+
+        cancelButton.addActionListener(e -> dispose());
+
+        buttonPanel.add(okButton);
+        buttonPanel.add(cancelButton);
 
         add(mainPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
@@ -141,7 +141,7 @@ public class InventaireDialog extends JDialog {
             for (Article article : articles) {
                 tableModel.addRow(new Object[]{
                     article.getNom(),
-                    0, // Quantité théorique initiale
+                    article.getQuantiteMinimale(), // Utiliser la quantité minimale comme quantité théorique
                     0, // Quantité réelle initiale
                     0  // Écart initial
                 });
@@ -178,6 +178,14 @@ public class InventaireDialog extends JDialog {
         if (dateInventaireChooser.getDate() == null) {
             JOptionPane.showMessageDialog(this,
                     "Veuillez sélectionner une date d'inventaire.",
+                    "Erreur de validation",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        if (tableModel.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Il n'y a aucun article dans l'inventaire.",
                     "Erreur de validation",
                     JOptionPane.ERROR_MESSAGE);
             return false;

@@ -5,6 +5,7 @@ import java.awt.*;
 
 public class MainWindow extends JFrame {
     private JTabbedPane tabbedPane;
+    private StocksPanel stocksPanel;
     private ArticlesPanel articlesPanel;
     private MouvementsPanel mouvementsPanel;
     private InventairesPanel inventairesPanel;
@@ -22,15 +23,27 @@ public class MainWindow extends JFrame {
 
     private void initializeComponents() {
         tabbedPane = new JTabbedPane();
+        stocksPanel = new StocksPanel();
         articlesPanel = new ArticlesPanel();
         mouvementsPanel = new MouvementsPanel();
         inventairesPanel = new InventairesPanel();
         rapportsPanel = new RapportsPanel();
 
-        tabbedPane.addTab("Articles", new ImageIcon("icons/articles.png"), articlesPanel);
-        tabbedPane.addTab("Mouvements", new ImageIcon("icons/mouvements.png"), mouvementsPanel);
-        tabbedPane.addTab("Inventaires", new ImageIcon("icons/inventaires.png"), inventairesPanel);
-        tabbedPane.addTab("Rapports", new ImageIcon("icons/rapports.png"), rapportsPanel);
+        // Ajouter les onglets avec gestion des icônes manquantes
+        try {
+            tabbedPane.addTab("Stocks", new ImageIcon("icons/stocks.png"), stocksPanel);
+            tabbedPane.addTab("Articles", new ImageIcon("icons/articles.png"), articlesPanel);
+            tabbedPane.addTab("Mouvements", new ImageIcon("icons/mouvements.png"), mouvementsPanel);
+            tabbedPane.addTab("Inventaires", new ImageIcon("icons/inventaires.png"), inventairesPanel);
+            tabbedPane.addTab("Rapports", new ImageIcon("icons/rapports.png"), rapportsPanel);
+        } catch (Exception e) {
+            // Si les icônes ne sont pas trouvées, ajouter les onglets sans icônes
+            tabbedPane.addTab("Stocks", stocksPanel);
+            tabbedPane.addTab("Articles", articlesPanel);
+            tabbedPane.addTab("Mouvements", mouvementsPanel);
+            tabbedPane.addTab("Inventaires", inventairesPanel);
+            tabbedPane.addTab("Rapports", rapportsPanel);
+        }
     }
 
     private void setupLayout() {
