@@ -27,8 +27,9 @@ public class StockAlertManager {
     }
 
     private void initializeAlertDialog() {
-        alertDialog = new JDialog((Frame) null, "Alerte Stock", false);
+        alertDialog = new JDialog((Frame) null, "⚠️ Alerte Stock", false);
         alertDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        alertDialog.setAlwaysOnTop(true); // Toujours au premier plan
         
         JPanel panel = new JPanel(new BorderLayout());
         alertArea = new JTextArea(10, 40);
@@ -39,9 +40,16 @@ public class StockAlertManager {
         JScrollPane scrollPane = new JScrollPane(alertArea);
         panel.add(scrollPane, BorderLayout.CENTER);
         
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton closeButton = new JButton("Fermer");
+        JButton acknowledgeButton = new JButton("J'ai compris");
+        
         closeButton.addActionListener(e -> alertDialog.dispose());
-        panel.add(closeButton, BorderLayout.SOUTH);
+        acknowledgeButton.addActionListener(e -> alertDialog.setVisible(false));
+        
+        buttonPanel.add(acknowledgeButton);
+        buttonPanel.add(closeButton);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
         
         alertDialog.add(panel);
         alertDialog.pack();
@@ -81,6 +89,9 @@ public class StockAlertManager {
         // Afficher la fenêtre d'alerte
         if (!alertDialog.isVisible()) {
             alertDialog.setVisible(true);
+            // Forcer la fenêtre au premier plan
+            alertDialog.toFront();
+            alertDialog.requestFocus();
         }
         
         // Jouer un son d'alerte
@@ -93,5 +104,8 @@ public class StockAlertManager {
 
     public void clearAlerts() {
         alertedArticles.clear();
+        if (alertDialog != null) {
+            alertDialog.dispose();
+        }
     }
 } 
