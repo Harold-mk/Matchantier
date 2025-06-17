@@ -44,7 +44,7 @@ public class InventaireDAO {
             }
 
             // Insérer les détails de l'inventaire
-            String detailSql = "INSERT INTO details_inventaires (inventaire_id, article_id, quantite_theorique, " +
+            String detailSql = "INSERT INTO details_inventaire (inventaire_id, article_id, quantite_theorique, " +
                              "quantite_reelle, ecart) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement pstmt = conn.prepareStatement(detailSql)) {
                 for (Inventaire.DetailInventaire detail : inventaire.getDetails()) {
@@ -82,7 +82,7 @@ public class InventaireDAO {
 
     public Optional<Inventaire> findById(Long id) throws SQLException {
         String sql = "SELECT i.*, d.* FROM inventaires i " +
-                    "LEFT JOIN details_inventaires d ON i.id = d.inventaire_id " +
+                    "LEFT JOIN details_inventaire d ON i.id = d.inventaire_id " +
                     "WHERE i.id = ?";
 
         try (Connection conn = dbManager.getConnection();
@@ -106,7 +106,7 @@ public class InventaireDAO {
 
     public List<Inventaire> findAll() throws SQLException {
         String sql = "SELECT i.*, d.* FROM inventaires i " +
-                    "LEFT JOIN details_inventaires d ON i.id = d.inventaire_id " +
+                    "LEFT JOIN details_inventaire d ON i.id = d.inventaire_id " +
                     "ORDER BY i.date_inventaire DESC";
         List<Inventaire> inventaires = new ArrayList<>();
         Inventaire currentInventaire = null;
