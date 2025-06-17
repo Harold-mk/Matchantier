@@ -6,10 +6,33 @@ import javax.swing.*;
 import java.awt.*;
 
 public class ArticleDialog extends JDialog {
+    private static final String[] UNITES_MESURE = {
+        "Unité", "Kg", "g", "L", "ml", "m", "cm", "m²", "m³", 
+        "Sac", "Paquet", "Rouleau", "Bouteille", "Carton", "Palette"
+    };
+
+    private static final String[] CATEGORIES = {
+        "Matériaux de construction",
+        "Ciment et mortier",
+        "Briques et blocs",
+        "Acier et métaux",
+        "Bois et dérivés",
+        "Isolation",
+        "Plomberie",
+        "Électricité",
+        "Peinture et finition",
+        "Outillage manuel",
+        "Outillage électrique",
+        "Équipement de sécurité",
+        "Consommables",
+        "Équipement de chantier",
+        "Autres"
+    };
+
     private JTextField codeField;
     private JTextField nomField;
     private JTextArea descriptionArea;
-    private JTextField uniteField;
+    private JComboBox<String> uniteCombo;
     private JSpinner quantiteMinSpinner;
     private JSpinner prixSpinner;
     private JComboBox<String> categorieCombo;
@@ -19,11 +42,17 @@ public class ArticleDialog extends JDialog {
     public ArticleDialog(Frame parent, Article article) {
         super(parent, "Article", true);
         this.article = article;
+        
         initializeComponents();
         setupLayout();
+        
         if (article != null) {
             fillFields();
+        } else {
+            // Générer une référence initiale pour un nouvel article
+            generateReference();
         }
+        
         pack();
         setLocationRelativeTo(parent);
         setResizable(false);
@@ -34,12 +63,11 @@ public class ArticleDialog extends JDialog {
         codeField = new JTextField(15);
         nomField = new JTextField(15);
         descriptionArea = new JTextArea(3, 15);
-        uniteField = new JTextField(5);
+        uniteCombo = new JComboBox<>(UNITES_MESURE);
         quantiteMinSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 10000, 1));
         prixSpinner = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 1000000.0, 0.01));
         
-        String[] categories = {"Matériaux", "Outillage", "Équipement", "Consommables"};
-        categorieCombo = new JComboBox<>(categories);
+        categorieCombo = new JComboBox<>(CATEGORIES);
 
         // Configuration des spinners
         JSpinner.NumberEditor prixEditor = new JSpinner.NumberEditor(prixSpinner, "0.00");
@@ -60,7 +88,12 @@ public class ArticleDialog extends JDialog {
         gbc.gridy = 0;
         mainPanel.add(new JLabel("Code référence *:"), gbc);
         gbc.gridx = 1;
-        mainPanel.add(codeField, gbc);
+        JPanel codePanel = new JPanel(new BorderLayout());
+        codePanel.add(codeField, BorderLayout.CENTER);
+        JLabel codeExample = new JLabel(" (ex: CIM-001)");
+        codeExample.setForeground(Color.GRAY);
+        codePanel.add(codeExample, BorderLayout.EAST);
+        mainPanel.add(codePanel, gbc);
 
         // Nom
         gbc.gridx = 0;
@@ -82,7 +115,7 @@ public class ArticleDialog extends JDialog {
         gbc.gridy = 3;
         mainPanel.add(new JLabel("Unité de mesure *:"), gbc);
         gbc.gridx = 1;
-        mainPanel.add(uniteField, gbc);
+        mainPanel.add(uniteCombo, gbc);
 
         // Quantité minimale
         gbc.gridx = 0;
@@ -131,17 +164,28 @@ public class ArticleDialog extends JDialog {
         codeField.setText(article.getCodeReference());
         nomField.setText(article.getNom());
         descriptionArea.setText(article.getDescription());
-        uniteField.setText(article.getUniteMesure());
+        uniteCombo.setSelectedItem(article.getUniteMesure());
         quantiteMinSpinner.setValue(article.getQuantiteMinimale());
         prixSpinner.setValue(article.getPrixUnitaire());
         categorieCombo.setSelectedItem(article.getCategorie());
+    }
+
+    private void generateReference() {
+        String categorie = (String) categorieCombo.getSelectedItem();
+        if (categorie != null) {
+            // Prendre les 3 premières lettres de la catégorie
+            String prefix = categorie.substring(0, Math.min(3, categorie.length())).toUpperCase();
+            // Générer un numéro aléatoire à 3 chiffres
+            int numero = (int) (Math.random() * 900) + 100; // Entre 100 et 999
+            codeField.setText(prefix + "-" + numero);
+        }
     }
 
     private void saveArticle() {
         // Validation des champs obligatoires
         if (codeField.getText().trim().isEmpty() ||
             nomField.getText().trim().isEmpty() ||
-            uniteField.getText().trim().isEmpty() ||
+            uniteCombo.getSelectedItem() == null ||
             categorieCombo.getSelectedItem() == null) {
             JOptionPane.showMessageDialog(this,
                     "Veuillez remplir tous les champs obligatoires",
@@ -150,14 +194,28 @@ public class ArticleDialog extends JDialog {
             return;
         }
 
+        // Validation du code de référence
+        String codeRef = codeField.getText().trim();
+        if (!codeRef.matches("^[A-Z]{3}-\\d{3}$")) {
+            JOptionPane.showMessageDialog(this,
+                    "Le code de référence doit être au format XXX-000\n" +
+                    "Exemples :\n" +
+                    "- CIM-001 pour Ciment\n" +
+                    "- BRI-002 pour Briques\n" +
+                    "- ACI-003 pour Acier",
+                    "Format de code invalide",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         if (article == null) {
             article = new Article();
         }
 
-        article.setCodeReference(codeField.getText().trim());
+        article.setCodeReference(codeRef);
         article.setNom(nomField.getText().trim());
         article.setDescription(descriptionArea.getText().trim());
-        article.setUniteMesure(uniteField.getText().trim());
+        article.setUniteMesure((String) uniteCombo.getSelectedItem());
         article.setQuantiteMinimale((Integer) quantiteMinSpinner.getValue());
         article.setPrixUnitaire((Double) prixSpinner.getValue());
         article.setCategorie((String) categorieCombo.getSelectedItem());
