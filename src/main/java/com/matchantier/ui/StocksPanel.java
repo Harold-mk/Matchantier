@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-public class StocksPanel extends JPanel {
+public class StocksPanel extends JPanel implements MouvementsPanel.StockChangeListener {
     private final ArticleDAO articleDAO;
     private final MouvementDAO mouvementDAO;
     private final JTable stocksTable;
@@ -85,6 +85,11 @@ public class StocksPanel extends JPanel {
         alertCheckTimer.start();
     }
     
+    @Override
+    public void onStockChanged() {
+        loadStocks();
+    }
+    
     private void loadStocks() {
         try {
             List<Article> articles = articleDAO.findAll();
@@ -129,26 +134,23 @@ public class StocksPanel extends JPanel {
         }
     }
     
-    private Map<Long, Integer> calculateStockQuantities() throws SQLException {
-        Map<Long, Integer> quantities = new HashMap<>();
-        List<Mouvement> mouvements = mouvementDAO.findAll();
-
-        for (Mouvement mouvement : mouvements) {
-            Long articleId = mouvement.getArticleId();
-            int quantity = quantities.getOrDefault(articleId, 0);
-
-            if (mouvement.getType() == Mouvement.Type.ENTREE) {
-                quantity += mouvement.getQuantite();
-            } else if (mouvement.getType() == Mouvement.Type.SORTIE) {
-                quantity -= mouvement.getQuantite();
-            }
-
-            quantities.put(articleId, quantity);
+    private Map<Long, Integer> calculateStockQuantities() {
+        try {
+            List<Mouvement> mouvements = mouvementDAO.findAll();
+            return mouvements.stream()
+                .collect(Collectors.groupingBy(
+                    Mouvement::getArticleId,
+                    Collectors.summingInt(m -> m.getType().equals("ENTREE") ? m.getQuantite() : -m.getQuantite())
+                ));
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                "Erreur lors du calcul des quantités : " + e.getMessage(),
+                "Erreur",
+                JOptionPane.ERROR_MESSAGE);
+            return new HashMap<>();
         }
-
-        return quantities;
     }
-
+    
     private String getStockStatus(int quantity, int seuilMinimum) {
         if (quantity <= 0) {
             return "Rupture";
@@ -158,7 +160,7 @@ public class StocksPanel extends JPanel {
             return "OK";
         }
     }
-
+    
     private void filterStocks() {
         String searchText = searchField.getText().toLowerCase();
         String selectedCategory = (String) categoryFilter.getSelectedItem();
@@ -181,7 +183,7 @@ public class StocksPanel extends JPanel {
         
         sorter.setRowFilter(filter);
     }
-
+    
     @Override
     public void removeNotify() {
         super.removeNotify();

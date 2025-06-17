@@ -2,88 +2,50 @@ package com.matchantier.ui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class MainWindow extends JFrame {
-    private JTabbedPane tabbedPane;
-    private StocksPanel stocksPanel;
-    private ArticlesPanel articlesPanel;
-    private MouvementsPanel mouvementsPanel;
-    private InventairesPanel inventairesPanel;
-    private RapportsPanel rapportsPanel;
+    private final JTabbedPane tabbedPane;
+    private final StocksPanel stocksPanel;
+    private final ArticlesPanel articlesPanel;
+    private final MouvementsPanel mouvementsPanel;
+    private final InventairesPanel inventairesPanel;
+    private final RapportsPanel rapportsPanel;
 
     public MainWindow() {
-        setTitle("MatChantier - Gestion de Stock");
+        setTitle("Gestion de Stock - Matchantier");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1024, 768);
+        setSize(1200, 800);
         setLocationRelativeTo(null);
 
-        initializeComponents();
-        setupLayout();
-    }
-
-    private void initializeComponents() {
-        tabbedPane = new JTabbedPane();
+        // Initialisation des panels
         stocksPanel = new StocksPanel();
         articlesPanel = new ArticlesPanel();
         mouvementsPanel = new MouvementsPanel();
         inventairesPanel = new InventairesPanel();
         rapportsPanel = new RapportsPanel();
 
-        // Ajouter les onglets avec gestion des icônes manquantes
-        try {
-            tabbedPane.addTab("Stocks", new ImageIcon("icons/stocks.png"), stocksPanel);
-            tabbedPane.addTab("Articles", new ImageIcon("icons/articles.png"), articlesPanel);
-            tabbedPane.addTab("Mouvements", new ImageIcon("icons/mouvements.png"), mouvementsPanel);
-            tabbedPane.addTab("Inventaires", new ImageIcon("icons/inventaires.png"), inventairesPanel);
-            tabbedPane.addTab("Rapports", new ImageIcon("icons/rapports.png"), rapportsPanel);
-        } catch (Exception e) {
-            // Si les icônes ne sont pas trouvées, ajouter les onglets sans icônes
-            tabbedPane.addTab("Stocks", stocksPanel);
-            tabbedPane.addTab("Articles", articlesPanel);
-            tabbedPane.addTab("Mouvements", mouvementsPanel);
-            tabbedPane.addTab("Inventaires", inventairesPanel);
-            tabbedPane.addTab("Rapports", rapportsPanel);
-        }
-    }
+        // Connexion entre MouvementsPanel et StocksPanel
+        mouvementsPanel.addStockChangeListener(stocksPanel);
 
-    private void setupLayout() {
-        setLayout(new BorderLayout());
-        add(tabbedPane, BorderLayout.CENTER);
+        // Création du tabbed pane
+        tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Stocks", new ImageIcon("icons/stock.png"), stocksPanel);
+        tabbedPane.addTab("Articles", new ImageIcon("icons/article.png"), articlesPanel);
+        tabbedPane.addTab("Mouvements", new ImageIcon("icons/mouvement.png"), mouvementsPanel);
+        tabbedPane.addTab("Inventaires", new ImageIcon("icons/inventaire.png"), inventairesPanel);
+        tabbedPane.addTab("Rapports", new ImageIcon("icons/rapport.png"), rapportsPanel);
 
-        // Barre d'outils
-        JToolBar toolBar = createToolBar();
-        add(toolBar, BorderLayout.NORTH);
+        add(tabbedPane);
 
-        // Barre de statut
-        JPanel statusBar = createStatusBar();
-        add(statusBar, BorderLayout.SOUTH);
-    }
-
-    private JToolBar createToolBar() {
-        JToolBar toolBar = new JToolBar();
-        toolBar.setFloatable(false);
-
-        JButton btnNouveau = new JButton("Nouveau");
-        JButton btnModifier = new JButton("Modifier");
-        JButton btnSupprimer = new JButton("Supprimer");
-        JButton btnActualiser = new JButton("Actualiser");
-
-        toolBar.add(btnNouveau);
-        toolBar.add(btnModifier);
-        toolBar.add(btnSupprimer);
-        toolBar.addSeparator();
-        toolBar.add(btnActualiser);
-
-        return toolBar;
-    }
-
-    private JPanel createStatusBar() {
-        JPanel statusBar = new JPanel(new BorderLayout());
-        statusBar.setBorder(BorderFactory.createEtchedBorder());
-
-        JLabel statusLabel = new JLabel("Prêt");
-        statusBar.add(statusLabel, BorderLayout.WEST);
-
-        return statusBar;
+        // Ajout d'un WindowListener pour gérer la fermeture de la fenêtre
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // Sauvegarder l'état de l'application si nécessaire
+                System.exit(0);
+            }
+        });
     }
 } 
