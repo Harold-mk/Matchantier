@@ -1,7 +1,9 @@
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\Main.java
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\ui\InventairesPanel.java
+C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\ui\MainFrame.java
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\model\Mouvement.java
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\ui\ArticlesPanel.java
+C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\ui\StocksPanel.java
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\dao\InventaireDAO.java
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\ui\dialog\InventaireDialog.java
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\model\Article.java
@@ -10,6 +12,9 @@ C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\database\Database
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\ui\dialog\ArticleDialog.java
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\model\Inventaire.java
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\ui\dialog\MouvementDialog.java
+C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\util\StockCalculator.java
+C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\util\DatabaseResetter.java
+C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\util\StockAlertManager.java
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\dao\MouvementDAO.java
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\ui\MouvementsPanel.java
 C:\Users\HP\Desktop\Projet Takam\src\main\java\com\matchantier\ui\RapportsPanel.java
