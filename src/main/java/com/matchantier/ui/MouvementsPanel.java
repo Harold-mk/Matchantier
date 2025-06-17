@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
 
 public class MouvementsPanel extends JPanel {
     private final MouvementDAO mouvementDAO;
@@ -28,10 +29,12 @@ public class MouvementsPanel extends JPanel {
     private JButton addButton;
     private JButton refreshButton;
     private JButton filterButton;
+    private final List<StockChangeListener> stockChangeListeners;
 
     public MouvementsPanel() {
         mouvementDAO = new MouvementDAO();
         articleDAO = new ArticleDAO();
+        stockChangeListeners = new ArrayList<>();
         initializeComponents();
         setupLayout();
         loadMouvements();
@@ -196,5 +199,19 @@ public class MouvementsPanel extends JPanel {
                         JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    public void addStockChangeListener(StockChangeListener listener) {
+        stockChangeListeners.add(listener);
+    }
+
+    private void notifyStockChange() {
+        for (StockChangeListener listener : stockChangeListeners) {
+            listener.onStockChanged();
+        }
+    }
+
+    public interface StockChangeListener {
+        void onStockChanged();
     }
 } 
